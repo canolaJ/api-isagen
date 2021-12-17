@@ -3,7 +3,7 @@ const { check } = require('express-validator');
 const router = Router();
 const cors = require("cors");
 router.use(cors());
-const { userAll, userCreate, userLogin, revalidateToken, userUpdate, searchUser } = require('../controllers/userController');
+const { userAll, userCreate, userLogin, revalidateToken, userUpdate, searchUser, searchUserCc } = require('../controllers/userController');
 const { validateFields } = require('../middlewares/errorsExpressValidator');
 const { validateJwt } = require('../middlewares/validateJwt');
 const { route } = require('express/lib/application');
@@ -52,6 +52,13 @@ router.post(
         validateFields
     ],
     searchUser)
-    
+
+router.post(
+    '/searchUserCc',
+    [
+        check('cc', 'La Cédula es obligatorio').not().isEmpty(),
+        validateFields
+    ],
+    searchUserCc)
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const { response } = require('express');
 const User = require('../models/UserModel');
+const Request = require('../models/RequestModel');
 const bcrypt = require('bcryptjs');
 const { generateJwt } = require('../helpers/jwt');
 
@@ -40,7 +41,6 @@ const userLogin = async(req,res) =>{
             const validatePassword = bcrypt.compareSync( password, user.password);
             if(validatePassword){
                 const token = await generateJwt( user.id, user.nombres);
-
                 res.status(200).json({
                     isOk : true,
                     user :{
@@ -162,6 +162,55 @@ const searchUser = async(req,res = response) =>{
     
 }
 
+const searchUserCc = async(req,res = response) =>{
+    
+    try {
+
+        const { cc, dateExit } = req.body;
+
+        const user = await User.findOne( {cc: { $regex: '.*' + cc + '.*' } } );
+
+        if(user){
+            const request = await Request.find(
+                {
+                    requestAuthor:  user._id,
+                    dateExit: { $regex: '.*' + dateExit + '.*' },
+                    stateRequest : 'Off'
+                } );
+
+                res.status(200).json({
+                    isOk : true,
+                    user :{
+                        id:user._id,
+                        nombres : user.nombres,
+                        apellidos : user.apellidos,
+                        cc : user.cc,
+                        phone : user.phone,
+                        post : user.post,
+                        salary : user.salary,
+                    },
+                    request : request
+                })
+        }else{
+
+            res.status(200).json({
+                isOk : false,
+                user : [],
+                request : []
+            })
+
+        }
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({
+            isOk : false
+        })
+    }
+    
+}
+
 
 module.exports = {
     userAll,
@@ -169,5 +218,6 @@ module.exports = {
     userLogin,
     revalidateToken,
     userUpdate,
-    searchUser
+    searchUser,
+    searchUserCc
 }
